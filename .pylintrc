@@ -1,0 +1,9 @@
+[BASIC]
+variable-rgx=[A-Za-z_][A-Za-z0-9_]{1,30}$
+
+[FORMAT]
+max-line-length=170
+
+[MESSAGES CONTROL]
+
+disable=no-else-return,bare-except,consider-using-enumerate,too-few-public-methods,redefined-builtin

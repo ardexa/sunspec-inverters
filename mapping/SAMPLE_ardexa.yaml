@@ -1,0 +1,159 @@
+sunspec_inverter_fields: &sunspec_inverter_fields
+  - name: Datetime
+    expect: date
+  - name: AC Current
+    expect: decimal
+    meta:
+      units: A
+  - name: AC Current 1
+    expect: decimal
+    meta:
+      units: A
+  - name: AC Current 2
+    expect: decimal
+    meta:
+      units: A
+  - name: AC Current 3
+    expect: decimal
+    meta:
+      units: A
+  - name: AC Voltage 12
+    expect: decimal
+    meta:
+      units: V
+  - name: AC Voltage 23
+    expect: decimal
+    meta:
+      units: V
+  - name: AC Voltage 31
+    expect: decimal
+    meta:
+      units: V
+  - name: AC Voltage 1
+    expect: decimal
+    meta:
+      units: V
+  - name: AC Voltage 2
+    expect: decimal
+    meta:
+      units: V
+  - name: AC Voltage 3
+    expect: decimal
+    meta:
+      units: V
+  - name: AC Power
+    expect: decimal
+    meta:
+      units: W
+  - name: Grid Freq
+    expect: decimal
+    meta:
+      units: Hz
+  - name: Cos Phi
+    expect: keyword
+  - name: Total Energy
+    expect: decimal
+    meta:
+      units: Wh
+  - name: DC Current 1
+    expect: decimal
+    meta:
+      units: A
+  - name: DC Voltage 1
+    expect: decimal
+    meta:
+      units: V
+  - name: DC Power
+    expect: decimal
+    meta:
+      units: W
+  - name: Cabinet Temp
+    expect: decimal
+    meta:
+      units: °C
+  - name: Temperature
+    expect: decimal
+    meta:
+      units: °C
+  - name: Transformer Temp
+    expect: decimal
+    meta:
+      units: °C
+  - name: Other Temp
+    expect: decimal
+    meta:
+      units: °C
+  - name: Status
+    expect: keyword
+  - name: Vendor Status
+    expect: keyword
+  - name: Event
+    expect: keyword
+
+sunspec_storage_fields: &sunspec_storage_fields
+  - name: Datetime
+    expect: date
+  - name: SetPt Max Charge
+    expect: decimal
+    meta:
+      units: W
+  - name: Storage Mode
+    expect: keyword
+  - name: State of Charge
+    expect: decimal
+    meta:
+      units: %
+  - name: Battery Voltage
+    expect: decimal
+    meta:
+      units: V
+  - name: Charge Status
+    expect: keyword
+  - name: Discharge Rate
+    expect: decimal
+    meta:
+      units: %
+  - name: Charge Rate
+    expect: decimal
+    meta:
+      units: %
+  - name: Available Energy
+    expect: decimal
+    meta:
+      units: AH
+
+
+amqp:
+  cacertfile: /etc/ardexa/keys/Ardexa CA chain - amqps.crt
+  certfile: /etc/ardexa/keys/client.crt
+  keyfile: /etc/ardexa/keys/client.key
+  hostname: broker.ardexa.com
+  vhost: default_org
+
+
+run:
+  - command: top -b -n2 | grep "Cpu(s)"|tail -n 1 | awk '{print $2 + $4}'
+    frequency : 30
+    expect: decimal
+    table: data
+    source: cpu_usage
+    meta:
+      units: percentage
+      comment: measures cpu usage
+
+  - command: sunspec_ardexa log /dev/ttyUSB0 1-1 /opt/ardexa
+    frequency : 60
+    expect: keyword
+    table: data
+    source: sunspec_cmd
+
+tail:
+  - fields: *sunspec_inverter_fields
+    table: solar
+    file: /opt/ardexa/sunspec_101/_dev_ttyUSB0/1/latest.csv
+    expect: csv
+    source: solaredge
+
+
+debug: 0
+stdout: false

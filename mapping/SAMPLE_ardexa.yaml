@@ -122,6 +122,64 @@ sunspec_storage_fields: &sunspec_storage_fields
     meta:
       units: AH
 
+sunspec_strings_fields: &sunspec_strings_fields
+  - name: Datetime
+    expect: date
+  - name: Global Events
+    expect: keyword
+  - name: Modules
+    expect: integer
+    meta:
+      units: '#'
+  - name: Module 1
+    expect: integer
+    meta:
+      units: '#'
+  - name: DC Current 1
+    expect: decimal
+    meta:
+      units: A
+  - name: DC Voltage 1
+    expect: decimal
+    meta:
+      units: V
+  - name: DC Power 1
+    expect: decimal
+    meta:
+      units: W
+  - name: Temperature 1
+    expect: decimal
+    meta:
+      units: °C
+  - name: Status 1
+    expect: keyword
+  - name: Modules Events 1
+    expect: keyword
+  - name: Module 2
+    expect: integer
+    meta:
+      units: '#'
+  - name: DC Current 2
+    expect: decimal
+    meta:
+      units: A
+  - name: DC Voltage 2
+    expect: decimal
+    meta:
+      units: V
+  - name: DC Power 2
+    expect: decimal
+    meta:
+      units: W
+  - name: Temperature 2
+    expect: decimal
+    meta:
+      units: °C
+  - name: Status 2
+    expect: keyword
+  - name: Modules Events 2
+    expect: keyword
+
 
 amqp:
   cacertfile: /etc/ardexa/keys/Ardexa CA chain - amqps.crt
@@ -150,9 +208,16 @@ run:
 tail:
   - fields: *sunspec_inverter_fields
     table: solar
-    file: /opt/ardexa/sunspec_101/_dev_ttyUSB0/1/latest.csv
+    file: /opt/ardexa/sunspec_103/_dev_ttyUSB0/1/latest.csv
     expect: csv
     source: solaredge
+
+  - fields: *sunspec_strings_fields
+    table: strings
+    file: /opt/ardexa/sunspec_160/_dev_ttyUSB0/1/latest.csv
+    expect: csv
+    source: delta_strings
+
 
 
 debug: 0

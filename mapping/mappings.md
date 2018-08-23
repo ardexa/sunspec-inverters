@@ -45,3 +45,32 @@ Charge Status               Charge Status           keyword
 Discharge Rate              Discharge Rate          Decimal     %
 Charge Rate                 Charge Rate             Decimal     %
 Available Energy            Available Energy        Decimal     AH
+
+
+
+- A Device of Type 160 (Which is a strings module, or MPPT Inverter Extension), will have a repeating block.
+- So parts of the following may repeat based on how many strings module are part of the inverter
+- Mostly, there may be 2, so we have included 2 as part of this mapping
+- In Ardexa, usually this data goes into the `strings` table
+
+CSV Name                    Ardexa Name             Type        Units
+-----------------------------------------------------------------------
+Datetime                    Datetime                Date
+Global Events               Global Events           keyword
+Number of Modules           Modules                 Integer
+Module ID                   Module 1                Integer
+DC Current 1                DC Current 1            Decimal     A
+DC Voltage 1                DC Voltage 1            Decimal     V
+DC Power 1                  DC Power 1              Decimal     W
+Temperature                 Temperature 1           Decimal     °C
+Operating State             Status 1                keyword
+Module Events               Module Events 1         keyword
+Module ID                   Module 2                Integer
+DC Current 1                DC Current 2            Decimal     A
+DC Voltage 1                DC Voltage 2            Decimal     V
+DC Power 1                  DC Power 2              Decimal     W
+Temperature                 Temperature 2           Decimal     °C
+Operating State             Status 2                keyword
+Module Events               Module Events 2         keyword
+
+

@@ -42,6 +42,7 @@ PY3K = sys.version_info >= (3, 0)
 PIDFILE = '/tmp/sunspec-ardexa.pid'
 SINGLE_PHASE_INVERTER = 101
 THREE_PHASE_INVERTER = 103
+INVERTER_STRINGS = 160
 STORAGE = 124
 
 # This is the dictionary and list for a Single and Three Phase Inverter (101 and 103)
@@ -59,10 +60,17 @@ list_inverter = ['A', 'APHA', 'APHB', 'APHC', 'PPVPHAB', 'PPVPHBC', 'PPVPHCA', '
 dict_storage = {'WCHAMAX' : 'SetPt Max Charge (W)', 'STORCTL_MOD' : 'Storage Mode', 'CHASTATE' : 'State of Charge (%)',
                 'INBATV' : 'Battery Voltage (V)', 'CHAST' : 'Charge Status', 'OUTWRTE' : 'Discharge Rate (%)', 'INWRTE' : 'Charge Rate (%)',
                 'STROAVAL' : 'Available Energy (AH)'}
-
 list_storage = ['WCHAMAX', 'STORCTL_MOD', 'CHASTATE', 'INBATV', 'CHAST', 'OUTWRTE', 'INWRTE', 'STROAVAL']
 
 
+# This is the dictionary and list for a MPPT Inverter Extension (160)
+dict_strings = {'Evt' : 'Global Events', 'N' : 'Number of Modules'}
+list_strings = ['Evt', 'N']
+dict_strings_repeating = {'ID' : 'Module ID', 'DCA' : 'DC Current (A)', 'DCV' : 'DC Voltage (V)', 'DCW' : 'DC Power (W)',
+                          'TMP' : 'Temperature', 'DCST' : 'Operating State', 'DCEVT' : 'Module Events'}
+
+
+###~~~~~~~~~~~~~~~~~~~
 dict_evt1 = {0 : 'Ground fault', 1 : 'DC over voltage', 2 : 'AC disconnect open', 3 : 'DC disconnect open', 4 : 'Grid disconnect',
              5 : 'Cabinet open', 6 : 'Manual shutdown', 7 : 'Over temperature', 8 : 'Frequency above limit', 9 : 'Frequency under limit',
              10 : 'AC Voltage above limit', 11 : 'AC Voltage under limit', 12 : 'Blown String fuse on input', 13 : 'Under temperature',
@@ -71,6 +79,11 @@ dict_evt1 = {0 : 'Ground fault', 1 : 'DC over voltage', 2 : 'AC disconnect open'
 dict_storctl_mod = {0 : 'Charge', 1 : 'Discharge'}
 dict_st = {1 : 'Off', 2 : 'Sleeping', 3 : 'Starting', 4 : 'MPPT', 5 : 'Throttled', 6 : 'Shutting down', 7 : 'Fault', 8 : 'Standby'}
 dict_chast = {1 : 'Off', 2 : 'Empty', 3 : 'Discharging', 4 : 'Charging', 5 : 'Full', 6 : 'Holding', 7 : 'Testing'}
+dict_evt = {0 : 'Ground Fault', 1 : 'Input Over Voltage', 19 : 'Reserved', 3 : 'DC Disconnect', 5 : 'Cabinet Open', 6 : 'Manual Shutdown', 7 : 'Over Temperature', 12 : 'Blown Fuse', 13 : 'Under Temperature', 14 : 'Memory Loss', 15 : 'Arc Detection', 20 : 'Test Failed', 21 : 'Under Voltage', 22 : 'Over Current'}
+dict_dcst = {1 : 'Off', 2 : 'Sleeping', 3 : 'Starting', 4 : 'MPPT', 5 : 'Throttled', 6 : 'Shutting down', 7 : 'Fault', 8 : 'Standby',
+             9 : 'Test', 19 : 'Reserved'}
+dict_dcevt = {0 : 'Ground Fault', 1 : 'Input Over Voltage', 19 : 'Reserved', 3 : 'DC Disconnect', 5 : 'Cabinet Open', 6 : 'Manual Shutdown', 7 : 'Over Temperature', 12 : 'Blown Fuse', 13 : 'Under Temperature', 14 : 'Memory Loss', 15 : 'Arc Detection', 20 : 'Test Failed', 21 : 'Under Voltage', 22 : 'Over Current'}
+
 
 
 def write_line(line, log_directory, header_line, debug):
@@ -121,6 +134,66 @@ def discover_devices(device_node, modbus_address, conn_type, baud, port, debug):
                     # Replace numbered status/events with description
                     value = convert_value(suns_id, value)
                     print('\t%-40s %20s %-10s' % (name, value, str(units)))
+
+
+
+def extract_160_data(model, list_dev, dict_dev, debug):
+    """This function will extract the data from a type 160 device
+       It is different in that this type has a repeating block"""
+
+    data_list = [""] * len(list_dev)
+    header_list = list_dev[:]
+    for idx, val in enumerate(header_list):
+        if val in dict_dev:
+            header_list[idx] = dict_dev[val]
+        else:
+            header_list[idx] = None
+
+    if debug > 0:
+        print("\nName: ", model.model_type.name, "\tSunspec Id: ", model.model_type.id, "\tLabel: ", model.model_type.label)
+    for block in model.blocks:
+        for point in block.points_list:
+            suns_id = (point.point_type.id).strip().upper()
+            # Check the value is present in the list we require
+            if suns_id in dict_dev:
+                value = ""
+                if point.value is not None:
+                    value = point.value
+                # Replace numbered status/events with description
+                value = convert_value(suns_id, value)
+
+                # Put the data in the data_list
+                index = list_dev.index(suns_id)
+                data_list[index] = str(value)
+                if debug > 0:
+                    print('\t%-20s %20s' % (suns_id, value))
+
+            # Else, if its in the repeating block, create a header AND data item
+            elif suns_id in dict_strings_repeating:
+                value = ""
+                if point.value is not None:
+                    value = point.value
+                # Replace numbered status/events with description
+                value = convert_value(suns_id, value)
+                # ***Append*** to the data_list **AND** the header_list
+                header_item = dict_strings_repeating[suns_id]
+                header_list.append(header_item)
+                data_list.append(str(value))
+                if debug > 0:
+                    print('\t%-20s %20s' % (suns_id, value))
+
+    # Add a datetime and Log the line
+    dt = ap.get_datetime_str()
+    data_list.insert(0, dt)
+    header_list.insert(0, 'Datetime')
+
+    # Formulate the line
+    line = ", ".join(data_list) + "\n"
+    # And the header line
+    header = "# " + ", ".join(header_list) + "\n"
+
+    return header, line
+
 
 
 def extract_data(model, list_dev, dict_dev, debug):
@@ -177,6 +250,12 @@ def convert_value(name, value):
         value = dict_storctl_mod[value]
     elif (name == 'CHAST') and (value in dict_chast):
         value = dict_chast[value]
+    elif (name == 'EVT') and (value in dict_evt):
+        value = dict_evt[value]
+    elif (name == 'DCST') and (value in dict_dcst):
+        value = dict_dcst[value]
+    elif (name == 'DCEVT') and (value in dict_dcevt):
+        value = dict_dcevt[value]
 
     return value
 
@@ -217,6 +296,13 @@ def log_devices(device_node, modbus_address, conn_type, baud, port, log_director
             header, line = extract_data(model, list_storage, dict_storage, debug)
             # Added "sunspec_124", device_node and modbus_address to the directory suffix
             full_log_directory = os.path.join(full_log_directory, "sunspec_124")
+            write = True
+
+        # Log the data for a device 160 (Strings)
+        if model.model_type.id == INVERTER_STRINGS:
+            header, line = extract_160_data(model, list_strings, dict_strings, debug)
+            # Added "sunspec_160", device_node and modbus_address to the directory suffix
+            full_log_directory = os.path.join(full_log_directory, "sunspec_160")
             write = True
 
         if write:

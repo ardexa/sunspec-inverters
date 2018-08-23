@@ -16,7 +16,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='sunspec_ardexa',
-    version='1.3.4',
+    version='1.3.5',
     description='Collect from Sunspec Inverters and send the data to your cloud using Ardexa',
     long_description=long_description,
     long_description_content_type='text/markdown',

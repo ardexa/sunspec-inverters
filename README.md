@@ -42,6 +42,10 @@ Example 4: sunspec_ardexa log /dev/ttyUSB0 1-1/opt/ardexa
 ## Sunspec devices
 In this project, please take a look at the 'docs' directory. This is a document from Sunspec that details their specification (not subject to change). Ardexa currently collecs `inverter` and `storage` types. However the `discover` will show all devices.
 
+## Inverter Types:
+- Delta Inverters use 19200 baud by default
+- Solaredge Inverters use 115200 baud by default
+
 ## Collecting to the Ardexa cloud
 Collecting to the Ardexa cloud is free for up to 3 Raspberry Pis (or equivalent). Ardexa provides free agents for ARM, Intel x86 and MIPS based processors. To collect the data to the Ardexa cloud do the following:
 - Create a `RUN` scenario to schedule the Ardexa Sunspec script to run at regular intervals (say every 300 seconds/5 minutes).

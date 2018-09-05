@@ -39,11 +39,13 @@ import sunspec.core.suns as suns
 PY3K = sys.version_info >= (3, 0)
 
 
-PIDFILE = '/tmp/sunspec-ardexa.pid'
+PIDFILE = '/tmp/sunspec-ardexa-'
 SINGLE_PHASE_INVERTER = 101
 THREE_PHASE_INVERTER = 103
 INVERTER_STRINGS = 160
 STORAGE = 124
+TIMEOUT_VAL = 3.0
+ATTEMPTS = 10
 
 # This is the dictionary and list for a Single and Three Phase Inverter (101 and 103)
 dict_inverter = {'A' : 'AC Current (A)', 'APHA' : 'AC Current 1 (A)', 'APHB' : 'AC Current 2 (A)', 'APHC' : 'AC Current 3 (A)',
@@ -102,17 +104,19 @@ def discover_devices(device_node, modbus_address, conn_type, baud, port, debug):
     try:
         if conn_type == 'tcp':
             port_int = int(port)
-            sunspec_client = client.SunSpecClientDevice(client.TCP, modbus_address, ipaddr=device_node, ipport=port_int, timeout=2.0)
+            sunspec_client = client.SunSpecClientDevice(client.TCP, modbus_address, ipaddr=device_node, ipport=port_int, timeout=TIMEOUT_VAL)
         elif conn_type == 'rtu':
-            sunspec_client = client.SunSpecClientDevice(client.RTU, modbus_address, name=device_node, baudrate=baud, timeout=2.0)
-    except client.SunSpecClientError:
+            sunspec_client = client.SunSpecClientDevice(client.RTU, modbus_address, name=device_node, baudrate=baud, timeout=TIMEOUT_VAL)
+
+        # read all models in the device
+        sunspec_client.read()
+
+    except:
         if debug > 0:
             print("Cannot find the address: ", modbus_address)
         return False
 
 
-    # read all models in the device
-    sunspec_client.read()
 
     print("Found a device at address: ", modbus_address)
     for model in sunspec_client.device.models_list:
@@ -134,6 +138,8 @@ def discover_devices(device_node, modbus_address, conn_type, baud, port, debug):
                     # Replace numbered status/events with description
                     value = convert_value(suns_id, value)
                     print('\t%-40s %20s %-10s' % (name, value, str(units)))
+
+    return True
 
 
 
@@ -267,17 +273,17 @@ def log_devices(device_node, modbus_address, conn_type, baud, port, log_director
     try:
         if conn_type == 'tcp':
             port_int = int(port)
-            sunspec_client = client.SunSpecClientDevice(client.TCP, modbus_address, ipaddr=device_node, ipport=port_int, timeout=2.0)
+            sunspec_client = client.SunSpecClientDevice(client.TCP, modbus_address, ipaddr=device_node, ipport=port_int, timeout=TIMEOUT_VAL)
         elif conn_type == 'rtu':
-            sunspec_client = client.SunSpecClientDevice(client.RTU, modbus_address, name=device_node, baudrate=baud, timeout=2.0)
-    except client.SunSpecClientError:
+            sunspec_client = client.SunSpecClientDevice(client.RTU, modbus_address, name=device_node, baudrate=baud, timeout=TIMEOUT_VAL)
+
+        # read all models in the device
+        sunspec_client.read()
+
+    except:
         if debug > 0:
             print("Cannot find the address: ", modbus_address)
         return False
-
-
-    # read all models in the device
-    sunspec_client.read()
 
     for model in sunspec_client.device.models_list:
         full_log_directory = log_directory
@@ -315,7 +321,7 @@ def log_devices(device_node, modbus_address, conn_type, baud, port, log_director
                 print("Header line: ", header.strip())
             write_line(line, full_log_directory, header, debug)
 
-
+    return True
 
 class Config(object):
     """Config object for click"""
@@ -343,7 +349,9 @@ def discover(config, device, modbus_addresses, baud, port):
     """Connect to the target IP address and run a scan of all Sunspec devices"""
 
     # Check that no other scripts are running
-    if ap.check_pidfile(PIDFILE, config.verbosity):
+    # The pidfile is based on the device, since there are multiple scripts running
+    pidfile = PIDFILE + device + '.pid'
+    if ap.check_pidfile(pidfile, config.verbosity):
         print("This script is already running")
         sys.exit(4)
 
@@ -358,15 +366,22 @@ def discover(config, device, modbus_addresses, baud, port):
 
     # This will check each address
     for address in ap.parse_address_list(modbus_addresses):
-        discover_devices(device, address, conn_type, baud, port, config.verbosity)
+        count = 0
+        while count < ATTEMPTS:
+            retval = discover_devices(device, address, conn_type, baud, port, config.verbosity)
+            if retval:
+                break
+            count += 1
+            time.sleep(1)
+        
 
     elapsed_time = time.time() - start_time
     if config.verbosity > 0:
         print("This request took: ", elapsed_time, " seconds.")
 
     # Remove the PID file
-    if os.path.isfile(PIDFILE):
-        os.unlink(PIDFILE)
+    if os.path.isfile(pidfile):
+        os.unlink(pidfile)
 
 
 @cli.command()
@@ -384,7 +399,9 @@ def log(config, device, modbus_addresses, output_directory, baud, port):
         os.makedirs(output_directory)
 
     # Check that no other scripts are running
-    if ap.check_pidfile(PIDFILE, config.verbosity):
+    # The pidfile is based on the device, since there are multiple scripts running
+    pidfile = PIDFILE + device + '.pid'
+    if ap.check_pidfile(pidfile, config.verbosity):
         print("This script is already running")
         sys.exit(4)
 
@@ -398,7 +415,15 @@ def log(config, device, modbus_addresses, output_directory, baud, port):
 
     # This will check each address
     for address in ap.parse_address_list(modbus_addresses):
-        log_devices(device, address, conn_type, baud, port, output_directory, config.verbosity)
+        count = 0
+        while count < ATTEMPTS:
+            retval = log_devices(device, address, conn_type, baud, port, output_directory, config.verbosity)
+            if retval:
+                break
+            count += 1
+            time.sleep(1)
+
+        
 
 
     elapsed_time = time.time() - start_time
@@ -406,5 +431,5 @@ def log(config, device, modbus_addresses, output_directory, baud, port):
         print("This request took: ", elapsed_time, " seconds.")
 
     # Remove the PID file
-    if os.path.isfile(PIDFILE):
-        os.unlink(PIDFILE)
+    if os.path.isfile(pidfile):
+        os.unlink(pidfile)

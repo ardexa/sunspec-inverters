@@ -246,7 +246,7 @@ def extract_data(model, list_dev, dict_dev, debug):
 
 
 def convert_value(name, value):
-    """This will look up and replace nuimbers with descriptions"""
+    """This will look up and replace numbers with descriptions"""
 
     if (name == 'EVT1') and (value in dict_evt1):
         value = dict_evt1[value]
@@ -262,6 +262,8 @@ def convert_value(name, value):
         value = dict_dcst[value]
     elif (name == 'DCEVT') and (value in dict_dcevt):
         value = dict_dcevt[value]
+    elif (name == 'W'):
+        value = abs(value)   
 
     return value
 

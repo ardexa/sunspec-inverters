@@ -1,15 +1,15 @@
 """
 To discover devices: sunspec_ardexa discover IP_address/Device_Node Bus_Addresses
 Example 1: sunspec_ardexa discover 192.168.1.3 1-5
-Example 2: sunspec_ardexa discover 192.168.1.3 1-5 --port=502
-Example 3: sunspec_ardexa discover /dev/ttyUSB0 1-1 --baud 115200
-Example 4: sunspec_ardexa discover /dev/ttyUSB0 1-1
+Example 2: sunspec_ardexa discover 192.168.1.3 1,3-5 --port=502
+Example 3: sunspec_ardexa discover /dev/ttyUSB0 1,3,5 --baud 115200
+Example 4: sunspec_ardexa discover /dev/ttyUSB0 1
 
 To send production data to a file on disk: sunspec_ardexa log IP_address/Device_Node Bus_Addresses Output_directory
 Example 1: sunspec_ardexa log 192.168.1.3 1-5 /opt/ardexa
-Example 2: sunspec_ardexa log 192.168.1.3 1-5 /opt/ardexa --port=502
-Example 3: sunspec_ardexa log /dev/ttyUSB0 1-1 /opt/ardexa --baud 115200
-Example 4: sunspec_ardexa log /dev/ttyUSB0 1-1/opt/ardexa
+Example 2: sunspec_ardexa log 192.168.1.3 1,3-5 /opt/ardexa --port=502
+Example 3: sunspec_ardexa log /dev/ttyUSB0 1,3,5 /opt/ardexa --baud 115200
+Example 4: sunspec_ardexa log /dev/ttyUSB0 1 /opt/ardexa
 
 """
 
@@ -33,11 +33,9 @@ import os
 import socket
 import click
 import ardexaplugin as ap
-import sunspec.core.client as client
-import sunspec.core.suns as suns
+import sunspec.core.client as sp_client
 
 PY3K = sys.version_info >= (3, 0)
-
 
 PIDFILE = '/tmp/sunspec-ardexa-'
 SINGLE_PHASE_INVERTER = 101
@@ -64,7 +62,6 @@ dict_storage = {'WCHAMAX' : 'SetPt Max Charge (W)', 'STORCTL_MOD' : 'Storage Mod
                 'STROAVAL' : 'Available Energy (AH)'}
 list_storage = ['WCHAMAX', 'STORCTL_MOD', 'CHASTATE', 'INBATV', 'CHAST', 'OUTWRTE', 'INWRTE', 'STROAVAL']
 
-
 # This is the dictionary and list for a MPPT Inverter Extension (160)
 dict_strings = {'Evt' : 'Global Events', 'N' : 'Number of Modules'}
 list_strings = ['Evt', 'N']
@@ -87,7 +84,6 @@ dict_dcst = {1 : 'Off', 2 : 'Sleeping', 3 : 'Starting', 4 : 'MPPT', 5 : 'Throttl
 dict_dcevt = {0 : 'Ground Fault', 1 : 'Input Over Voltage', 19 : 'Reserved', 3 : 'DC Disconnect', 5 : 'Cabinet Open', 6 : 'Manual Shutdown', 7 : 'Over Temperature', 12 : 'Blown Fuse', 13 : 'Under Temperature', 14 : 'Memory Loss', 15 : 'Arc Detection', 20 : 'Test Failed', 21 : 'Under Voltage', 22 : 'Over Current'}
 
 
-
 def write_line(line, log_directory, header_line, debug):
     """This will write a line to the base_directory
     Assume header and lines are already \n terminated"""
@@ -100,13 +96,12 @@ def write_line(line, log_directory, header_line, debug):
 
 
 def discover_devices(device_node, modbus_address, conn_type, baud, port, debug):
-
     try:
         if conn_type == 'tcp':
             port_int = int(port)
-            sunspec_client = client.SunSpecClientDevice(client.TCP, modbus_address, ipaddr=device_node, ipport=port_int, timeout=TIMEOUT_VAL)
+            sunspec_client = sp_client.SunSpecClientDevice(sp_client.TCP, modbus_address, ipaddr=device_node, ipport=port_int, timeout=TIMEOUT_VAL)
         elif conn_type == 'rtu':
-            sunspec_client = client.SunSpecClientDevice(client.RTU, modbus_address, name=device_node, baudrate=baud, timeout=TIMEOUT_VAL)
+            sunspec_client = sp_client.SunSpecClientDevice(sp_client.RTU, modbus_address, name=device_node, baudrate=baud, timeout=TIMEOUT_VAL)
 
         # read all models in the device
         sunspec_client.read()
@@ -115,8 +110,6 @@ def discover_devices(device_node, modbus_address, conn_type, baud, port, debug):
         if debug > 0:
             print("Cannot find the address: ", modbus_address)
         return False
-
-
 
     print("Found a device at address: ", modbus_address)
     for model in sunspec_client.device.models_list:
@@ -140,7 +133,6 @@ def discover_devices(device_node, modbus_address, conn_type, baud, port, debug):
                     print('\t%-40s %20s %-10s' % (name, value, str(units)))
 
     return True
-
 
 
 def extract_160_data(model, list_dev, dict_dev, debug):
@@ -201,7 +193,6 @@ def extract_160_data(model, list_dev, dict_dev, debug):
     return header, line
 
 
-
 def extract_data(model, list_dev, dict_dev, debug):
     """This function will extract the data from a device"""
 
@@ -248,25 +239,24 @@ def extract_data(model, list_dev, dict_dev, debug):
 def convert_value(name, value):
     """This will look up and replace numbers with descriptions"""
 
-    if (name == 'EVT1') and (value in dict_evt1):
+    if name == 'EVT1' and value in dict_evt1:
         value = dict_evt1[value]
-    elif (name == 'ST') and (value in dict_st):
+    elif name == 'ST' and value in dict_st:
         value = dict_st[value]
-    elif (name == 'STORCTL_MOD') and (value in dict_storctl_mod):
+    elif name == 'STORCTL_MOD' and value in dict_storctl_mod:
         value = dict_storctl_mod[value]
-    elif (name == 'CHAST') and (value in dict_chast):
+    elif name == 'CHAST' and value in dict_chast:
         value = dict_chast[value]
-    elif (name == 'EVT') and (value in dict_evt):
+    elif name == 'EVT' and value in dict_evt:
         value = dict_evt[value]
-    elif (name == 'DCST') and (value in dict_dcst):
+    elif name == 'DCST' and value in dict_dcst:
         value = dict_dcst[value]
-    elif (name == 'DCEVT') and (value in dict_dcevt):
+    elif name == 'DCEVT' and value in dict_dcevt:
         value = dict_dcevt[value]
-    elif (name == 'W'):
-        value = abs(value)   
+    elif name == 'W':
+        value = abs(value)
 
     return value
-
 
 
 def log_devices(device_node, modbus_address, conn_type, baud, port, log_directory, debug):
@@ -275,9 +265,9 @@ def log_devices(device_node, modbus_address, conn_type, baud, port, log_director
     try:
         if conn_type == 'tcp':
             port_int = int(port)
-            sunspec_client = client.SunSpecClientDevice(client.TCP, modbus_address, ipaddr=device_node, ipport=port_int, timeout=TIMEOUT_VAL)
+            sunspec_client = sp_client.SunSpecClientDevice(sp_client.TCP, modbus_address, ipaddr=device_node, ipport=port_int, timeout=TIMEOUT_VAL)
         elif conn_type == 'rtu':
-            sunspec_client = client.SunSpecClientDevice(client.RTU, modbus_address, name=device_node, baudrate=baud, timeout=TIMEOUT_VAL)
+            sunspec_client = sp_client.SunSpecClientDevice(sp_client.RTU, modbus_address, name=device_node, baudrate=baud, timeout=TIMEOUT_VAL)
 
         # read all models in the device
         sunspec_client.read()
@@ -325,6 +315,7 @@ def log_devices(device_node, modbus_address, conn_type, baud, port, log_director
 
     return True
 
+
 class Config(object):
     """Config object for click"""
     def __init__(self):
@@ -363,7 +354,6 @@ def discover(config, device, modbus_addresses, baud, port):
     except socket.error:
         conn_type = 'rtu'
 
-
     start_time = time.time()
 
     # This will check each address
@@ -375,7 +365,6 @@ def discover(config, device, modbus_addresses, baud, port):
                 break
             count += 1
             time.sleep(1)
-        
 
     elapsed_time = time.time() - start_time
     if config.verbosity > 0:
@@ -424,9 +413,6 @@ def log(config, device, modbus_addresses, output_directory, baud, port):
                 break
             count += 1
             time.sleep(1)
-
-        
-
 
     elapsed_time = time.time() - start_time
     if config.verbosity > 0:

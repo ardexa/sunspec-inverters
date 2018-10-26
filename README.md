@@ -20,18 +20,18 @@ Note that the `port` default is `502` if not specified, and `baud` default is `1
 ```
 Usage: sunspec_ardexa discover IP_address/Device_Node Bus_Addresses
 Example 1: sunspec_ardexa discover 192.168.1.3 1-5
-Example 2: sunspec_ardexa discover 192.168.1.3 1-5 --port=502
-Example 3: sunspec_ardexa discover /dev/ttyUSB0 1-1 --baud 115200
-Example 4: sunspec_ardexa discover /dev/ttyUSB0 1-1
+Example 2: sunspec_ardexa discover 192.168.1.3 1,3-5 --port=502
+Example 3: sunspec_ardexa discover /dev/ttyUSB0 1,3,5 --baud 115200
+Example 4: sunspec_ardexa discover /dev/ttyUSB0 1
 ```
 
 To send production data to a file on disk 
 ```
 Usage: sunspec_ardexa log IP_address/Device_Node Bus_Addresses Output_directory
 Example 1: sunspec_ardexa log 192.168.1.3 1-5 /opt/ardexa
-Example 2: sunspec_ardexa log 192.168.1.3 1-5 /opt/ardexa --port=502
-Example 3: sunspec_ardexa log /dev/ttyUSB0 1-1 /opt/ardexa --baud 115200
-Example 4: sunspec_ardexa log /dev/ttyUSB0 1-1/opt/ardexa
+Example 2: sunspec_ardexa log 192.168.1.3 1,3-5 /opt/ardexa --port=502
+Example 3: sunspec_ardexa log /dev/ttyUSB0 1,3,5 /opt/ardexa --baud 115200
+Example 4: sunspec_ardexa log /dev/ttyUSB0 1 /opt/ardexa
 ```
 
 - IP_address/Device_Node = ..something like: `192.168.1.4` or `/dev/ttyUSB0`

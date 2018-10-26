@@ -352,7 +352,7 @@ def discover(config, device, modbus_addresses, baud, port):
 
     # Check that no other scripts are running
     # The pidfile is based on the device, since there are multiple scripts running
-    pidfile = PIDFILE + device + '.pid'
+    pidfile = PIDFILE + device.replace('/', '-') + '.pid'
     if ap.check_pidfile(pidfile, config.verbosity):
         print("This script is already running")
         sys.exit(4)
@@ -402,7 +402,7 @@ def log(config, device, modbus_addresses, output_directory, baud, port):
 
     # Check that no other scripts are running
     # The pidfile is based on the device, since there are multiple scripts running
-    pidfile = PIDFILE + device + '.pid'
+    pidfile = PIDFILE + device.replace('/', '-') + '.pid'
     if ap.check_pidfile(pidfile, config.verbosity):
         print("This script is already running")
         sys.exit(4)

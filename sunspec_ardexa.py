@@ -113,8 +113,12 @@ def discover_devices(device_node, modbus_address, conn_type, baud, port, debug):
 
     print("Found a device at address: ", modbus_address)
     for model in sunspec_client.device.models_list:
-        if model.model_type.name:
-            print("\nName: ", model.model_type.name, "\tSunspec Id: ", model.model_type.id, "\tLabel: ", model.model_type.label)
+        # Name may not exist
+        try:
+            if model.model_type.name:
+                print("\nName: ", model.model_type.name, "\tSunspec Id: ", model.model_type.id, "\tLabel: ", model.model_type.label)
+        except:
+            pass
 
         for block in model.blocks:
             for point in block.points_list:
@@ -282,36 +286,41 @@ def log_devices(device_node, modbus_address, conn_type, baud, port, log_director
         line = header = ""
         write = False
 
-        # Log the data for an 101 (Single Phase) Inverter
-        if model.model_type.id == SINGLE_PHASE_INVERTER or model.model_type.id == THREE_PHASE_INVERTER:
-            header, line = extract_data(model, list_inverter, dict_inverter, debug)
-            # Added "sunspec_101", device_node and modbus_address to the directory suffix
-            full_log_directory = os.path.join(full_log_directory, "sunspec_101")
-            write = True
+        # "id" may not exist
+        try:
+            # Log the data for an 101 (Single Phase) Inverter
+            if model.model_type.id == SINGLE_PHASE_INVERTER or model.model_type.id == THREE_PHASE_INVERTER:
+                header, line = extract_data(model, list_inverter, dict_inverter, debug)
+                # Added "sunspec_101", device_node and modbus_address to the directory suffix
+                full_log_directory = os.path.join(full_log_directory, "sunspec_101")
+                write = True
 
-        # Log the data for a device 124 (Storage)
-        if model.model_type.id == STORAGE:
-            header, line = extract_data(model, list_storage, dict_storage, debug)
-            # Added "sunspec_124", device_node and modbus_address to the directory suffix
-            full_log_directory = os.path.join(full_log_directory, "sunspec_124")
-            write = True
+            # Log the data for a device 124 (Storage)
+            if model.model_type.id == STORAGE:
+                header, line = extract_data(model, list_storage, dict_storage, debug)
+                # Added "sunspec_124", device_node and modbus_address to the directory suffix
+                full_log_directory = os.path.join(full_log_directory, "sunspec_124")
+                write = True
 
-        # Log the data for a device 160 (Strings)
-        if model.model_type.id == INVERTER_STRINGS:
-            header, line = extract_160_data(model, list_strings, dict_strings, debug)
-            # Added "sunspec_160", device_node and modbus_address to the directory suffix
-            full_log_directory = os.path.join(full_log_directory, "sunspec_160")
-            write = True
+            # Log the data for a device 160 (Strings)
+            if model.model_type.id == INVERTER_STRINGS:
+                header, line = extract_160_data(model, list_strings, dict_strings, debug)
+                # Added "sunspec_160", device_node and modbus_address to the directory suffix
+                full_log_directory = os.path.join(full_log_directory, "sunspec_160")
+                write = True
 
-        if write:
-            # replace forward slashes
-            devnode = device_node.replace("/", "_")
-            full_log_directory = os.path.join(full_log_directory, str(devnode))
-            full_log_directory = os.path.join(full_log_directory, str(modbus_address))
-            if debug > 0:
-                print("Data line: ", line.strip())
-                print("Header line: ", header.strip())
-            write_line(line, full_log_directory, header, debug)
+            if write:
+                # replace forward slashes
+                devnode = device_node.replace("/", "_")
+                full_log_directory = os.path.join(full_log_directory, str(devnode))
+                full_log_directory = os.path.join(full_log_directory, str(modbus_address))
+                if debug > 0:
+                    print("Data line: ", line.strip())
+                    print("Header line: ", header.strip())
+                write_line(line, full_log_directory, header, debug)
+
+        except:
+            pass
 
     return True
 

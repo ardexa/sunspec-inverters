@@ -74,3 +74,31 @@ Operating State             Status 2                keyword
 Module Events               Module Events 2         keyword
 
 
+- A Device of Type 403 (Which is a strings combiner module), will have a repeating block.
+- So parts of the following may repeat based on how many strings module are part of the inverter
+- The mapping below is for a repeated 4 x modules.
+- In Ardexa, usually this data goes into the `strings` table
+
+CSV Name                    Ardexa Name             Type        Units
+-----------------------------------------------------------------------
+Datetime                    Datetime                Date
+Global Events               Global Events           keyword
+Number of Modules           Modules                 Integer
+DC Current                  DC Current              Decimal     A
+Temperature                 Temperature             Decimal     °C
+
+...repeating block..... (only 3 shown)
+
+Module ID                   Module 1                Integer
+DC Current 1                DC Current 1            Decimal     A
+Module Events               Module Events 1         keyword
+
+Module ID                   Module 2                Integer
+DC Current 2                DC Current 2            Decimal     A
+Module Events               Module Events 2         keyword
+
+Module ID                   Module 3                Integer
+DC Current 3                DC Current 3            Decimal     A
+Module Events               Module Events 3         keyword
+
+

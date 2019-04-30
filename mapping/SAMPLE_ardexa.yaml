@@ -181,6 +181,26 @@ sunspec_strings_fields: &sunspec_strings_fields
     expect: keyword
 
 
+sunspec_combiner_fields: &sunspec_combiner_fields
+  - name: Datetime
+    expect: date
+  - name: Global Events
+    expect: keyword
+  - name: Modules
+    expect: integer
+    meta:
+      units: '#'
+  - name: Module 1
+    expect: integer
+    meta:
+      units: '#'
+  - name: DC Current 1
+    expect: decimal
+    meta:
+      units: A
+  - name: Modules Events 1
+    expect: keyword
+
 amqp:
   cacertfile: /etc/ardexa/keys/Ardexa CA chain - amqps.crt
   certfile: /etc/ardexa/keys/client.crt
@@ -218,6 +238,11 @@ tail:
     expect: csv
     source: delta_strings
 
+  - fields: *sunspec_combiner_fields
+    table: strings
+    file: /opt/ardexa/sunspec_403/_dev_ttyUSB0/1/latest.csv
+    expect: csv
+    source: delta_string_combiner
 
 
 debug: 0

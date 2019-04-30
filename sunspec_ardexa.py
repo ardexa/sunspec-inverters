@@ -41,6 +41,7 @@ PIDFILE = '/tmp/sunspec-ardexa-'
 SINGLE_PHASE_INVERTER = 101
 THREE_PHASE_INVERTER = 103
 INVERTER_STRINGS = 160
+STRING_COMBINER = 403
 STORAGE = 124
 TIMEOUT_VAL = 3.0
 ATTEMPTS = 10
@@ -67,6 +68,11 @@ dict_strings = {'Evt' : 'Global Events', 'N' : 'Number of Modules'}
 list_strings = ['Evt', 'N']
 dict_strings_repeating = {'ID' : 'Module ID', 'DCA' : 'DC Current (A)', 'DCV' : 'DC Voltage (V)', 'DCW' : 'DC Power (W)',
                           'TMP' : 'Temperature', 'DCST' : 'Operating State', 'DCEVT' : 'Module Events'}
+
+# This is the dictionary and list for a String Combiner (403)
+dict_combiner = {'Evt' : 'Global Events', 'N' : 'Number of Modules', 'DCA' : 'DC Current (A)', 'TMP' : 'Temperature'}
+list_combiner = ['Evt', 'N', 'DCA', 'TMP']
+dict_combiner_repeating = {'INID' : 'Module ID', 'INDCA' : 'DC Current (A)', 'INEVT' : 'Module Events'}
 
 
 ###~~~~~~~~~~~~~~~~~~~
@@ -197,6 +203,64 @@ def extract_160_data(model, list_dev, dict_dev, debug):
     return header, line
 
 
+def extract_403_data(model, list_dev, dict_dev, debug):
+    """This function will extract the data from a type 403 device
+       It is different in that this type has a repeating block"""
+
+    data_list = [""] * len(list_dev)
+    header_list = list_dev[:]
+    for idx, val in enumerate(header_list):
+        if val in dict_dev:
+            header_list[idx] = dict_dev[val]
+        else:
+            header_list[idx] = None
+
+    if debug > 0:
+        print("\nName: ", model.model_type.name, "\tSunspec Id: ", model.model_type.id, "\tLabel: ", model.model_type.label)
+    for block in model.blocks:
+        for point in block.points_list:
+            suns_id = (point.point_type.id).strip().upper()
+
+            # Check the value is present in the list we require
+            if suns_id in dict_dev:
+                value = ""
+                if point.value is not None:
+                    value = point.value
+                # Replace numbered status/events with description
+                value = convert_value(suns_id, value)
+                # Put the data in the data_list
+                index = list_dev.index(suns_id)
+                data_list[index] = str(value)
+                if debug > 0:
+                    print('\t%-20s %20s' % (suns_id, value))
+
+            # Else, if its in the repeating block, create a header AND data item
+            elif suns_id in dict_combiner_repeating:
+                value = ""
+                if point.value is not None:
+                    value = point.value
+                # Replace numbered status/events with description
+                value = convert_value(suns_id, value)
+                # ***Append*** to the data_list **AND** the header_list
+                header_item = dict_combiner_repeating[suns_id]
+                header_list.append(header_item)
+                data_list.append(str(value))
+                if debug > 0:
+                    print('\t%-20s %20s' % (suns_id, value))
+
+    # Add a datetime and Log the line
+    dt = ap.get_datetime_str()
+    data_list.insert(0, dt)
+    header_list.insert(0, 'Datetime')
+
+    # Formulate the line
+    line = ", ".join(data_list) + "\n"
+    # And the header line
+    header = "# " + ", ".join(header_list) + "\n"
+
+    return header, line
+
+
 def extract_data(model, list_dev, dict_dev, debug):
     """This function will extract the data from a device"""
 
@@ -308,6 +372,14 @@ def log_devices(device_node, modbus_address, conn_type, baud, port, log_director
                 # Added "sunspec_160", device_node and modbus_address to the directory suffix
                 full_log_directory = os.path.join(full_log_directory, "sunspec_160")
                 write = True
+
+            # Log the data for a device 403 (String Combiner)
+            if model.model_type.id == STRING_COMBINER:
+                header, line = extract_403_data(model, list_combiner, dict_combiner, debug)
+                # Added "sunspec_403", device_node and modbus_address to the directory suffix
+                full_log_directory = os.path.join(full_log_directory, "sunspec_403")
+                write = True
+
 
             if write:
                 # replace forward slashes

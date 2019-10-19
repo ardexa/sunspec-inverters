@@ -38,56 +38,61 @@ import sunspec.core.client as sp_client
 PY3K = sys.version_info >= (3, 0)
 
 PIDFILE = '/tmp/sunspec-ardexa-'
-SINGLE_PHASE_INVERTER = 101
-THREE_PHASE_INVERTER = 103
+SINGLE_PHASE_INVERTER_101 = 101
+THREE_PHASE_INVERTER_103 = 103
+THREE_PHASE_INVERTER_113 = 113
 INVERTER_STRINGS = 160
 STRING_COMBINER = 403
 STORAGE = 124
 TIMEOUT_VAL = 3.0
 ATTEMPTS = 10
 
-# This is the dictionary and list for a Single and Three Phase Inverter (101 and 103)
-dict_inverter = {'A' : 'AC Current (A)', 'APHA' : 'AC Current 1 (A)', 'APHB' : 'AC Current 2 (A)', 'APHC' : 'AC Current 3 (A)',
+# This is the dictionary and list for a Single and Three Phase Inverter (101, 103 AND 113)
+DICT_INVERTER = {'A' : 'AC Current (A)', 'APHA' : 'AC Current 1 (A)', 'APHB' : 'AC Current 2 (A)', 'APHC' : 'AC Current 3 (A)',
                  'PPVPHAB' : 'AC Voltage 12 (A)', 'PPVPHBC' : 'AC Voltage 23 (A)', 'PPVPHCA' : 'AC Voltage 31 (A)',
                  'PHVPHA' : 'AC Voltage 1 (A)', 'PHVPHB' : 'AC Voltage 2 (A)', 'PHVPHC' : 'AC Voltage 3 (A)',
                  'W' : 'AC Power (W)', 'HZ' : 'Grid Freq (Hz)', 'PF' : 'Cos Phi', 'WH' : 'Total Energy (Wh)', 'DCA' : 'DC Current 1 (A)',
                  'DCV' : 'DC Voltage 1 (V)', 'DCW' : 'DC Power (W)', 'TMPCAB' : 'Cabinet Temperature (C)', 'TMPSNK' : 'Heat Sink Temperature (C)',
                  'TMPTRNS' : 'Transformer Temperature (C)', 'TMPOT' : 'Other Temperature (C)', 'ST' : 'Operating State',
                  'STVND' : 'Vendor Operating State', 'EVT1' : 'Event1'}
-list_inverter = ['A', 'APHA', 'APHB', 'APHC', 'PPVPHAB', 'PPVPHBC', 'PPVPHCA', 'PHVPHA', 'PHVPHB', 'PHVPHC', 'W', 'HZ', 'PF', 'WH',
+LIST_INVERTER = ['A', 'APHA', 'APHB', 'APHC', 'PPVPHAB', 'PPVPHBC', 'PPVPHCA', 'PHVPHA', 'PHVPHB', 'PHVPHC', 'W', 'HZ', 'PF', 'WH',
                  'DCA', 'DCV', 'DCW', 'TMPCAB', 'TMPSNK', 'TMPTRNS', 'TMPOT', 'ST', 'STVND', 'EVT1']
 
 # This is the dictionary and list for a Storage (124)
-dict_storage = {'WCHAMAX' : 'SetPt Max Charge (W)', 'STORCTL_MOD' : 'Storage Mode', 'CHASTATE' : 'State of Charge (%)',
+DICT_STORAGE = {'WCHAMAX' : 'SetPt Max Charge (W)', 'STORCTL_MOD' : 'Storage Mode', 'CHASTATE' : 'State of Charge (%)',
                 'INBATV' : 'Battery Voltage (V)', 'CHAST' : 'Charge Status', 'OUTWRTE' : 'Discharge Rate (%)', 'INWRTE' : 'Charge Rate (%)',
                 'STROAVAL' : 'Available Energy (AH)'}
-list_storage = ['WCHAMAX', 'STORCTL_MOD', 'CHASTATE', 'INBATV', 'CHAST', 'OUTWRTE', 'INWRTE', 'STROAVAL']
+LIST_STORAGE = ['WCHAMAX', 'STORCTL_MOD', 'CHASTATE', 'INBATV', 'CHAST', 'OUTWRTE', 'INWRTE', 'STROAVAL']
 
 # This is the dictionary and list for a MPPT Inverter Extension (160)
-dict_strings = {'Evt' : 'Global Events', 'N' : 'Number of Modules'}
-list_strings = ['Evt', 'N']
-dict_strings_repeating = {'ID' : 'Module ID', 'DCA' : 'DC Current (A)', 'DCV' : 'DC Voltage (V)', 'DCW' : 'DC Power (W)',
+DICT_STRINGS = {'Evt' : 'Global Events', 'N' : 'Number of Modules'}
+LIST_STRINGS = ['Evt', 'N']
+DICT_STRINGS_REPEATING = {'ID' : 'Module ID', 'DCA' : 'DC Current (A)', 'DCV' : 'DC Voltage (V)', 'DCW' : 'DC Power (W)',
                           'TMP' : 'Temperature', 'DCST' : 'Operating State', 'DCEVT' : 'Module Events'}
 
 # This is the dictionary and list for a String Combiner (403)
-dict_combiner = {'Evt' : 'Global Events', 'N' : 'Number of Modules', 'DCA' : 'DC Current (A)', 'TMP' : 'Temperature'}
-list_combiner = ['Evt', 'N', 'DCA', 'TMP']
-dict_combiner_repeating = {'INID' : 'Module ID', 'INDCA' : 'DC Current (A)', 'INEVT' : 'Module Events'}
+DICT_COMBINER = {'Evt' : 'Global Events', 'N' : 'Number of Modules', 'DCA' : 'DC Current (A)', 'TMP' : 'Temperature'}
+LIST_COMBINER = ['Evt', 'N', 'DCA', 'TMP']
+DICT_COMBINER_REPEATING = {'INID' : 'Module ID', 'INDCA' : 'DC Current (A)', 'INEVT' : 'Module Events'}
 
 
 ###~~~~~~~~~~~~~~~~~~~
-dict_evt1 = {0 : 'Ground fault', 1 : 'DC over voltage', 2 : 'AC disconnect open', 3 : 'DC disconnect open', 4 : 'Grid disconnect',
+DICT_EVT1 = {0 : 'Ground fault', 1 : 'DC over voltage', 2 : 'AC disconnect open', 3 : 'DC disconnect open', 4 : 'Grid disconnect',
              5 : 'Cabinet open', 6 : 'Manual shutdown', 7 : 'Over temperature', 8 : 'Frequency above limit', 9 : 'Frequency under limit',
              10 : 'AC Voltage above limit', 11 : 'AC Voltage under limit', 12 : 'Blown String fuse on input', 13 : 'Under temperature',
              14 : 'Generic Memory or Communication error (internal)', 15 : 'Hardware test failure'}
 
-dict_storctl_mod = {0 : 'Charge', 1 : 'Discharge'}
-dict_st = {1 : 'Off', 2 : 'Sleeping', 3 : 'Starting', 4 : 'MPPT', 5 : 'Throttled', 6 : 'Shutting down', 7 : 'Fault', 8 : 'Standby'}
-dict_chast = {1 : 'Off', 2 : 'Empty', 3 : 'Discharging', 4 : 'Charging', 5 : 'Full', 6 : 'Holding', 7 : 'Testing'}
-dict_evt = {0 : 'Ground Fault', 1 : 'Input Over Voltage', 19 : 'Reserved', 3 : 'DC Disconnect', 5 : 'Cabinet Open', 6 : 'Manual Shutdown', 7 : 'Over Temperature', 12 : 'Blown Fuse', 13 : 'Under Temperature', 14 : 'Memory Loss', 15 : 'Arc Detection', 20 : 'Test Failed', 21 : 'Under Voltage', 22 : 'Over Current'}
-dict_dcst = {1 : 'Off', 2 : 'Sleeping', 3 : 'Starting', 4 : 'MPPT', 5 : 'Throttled', 6 : 'Shutting down', 7 : 'Fault', 8 : 'Standby',
+DICT_STORCTL_MOD = {0 : 'Charge', 1 : 'Discharge'}
+DICT_ST = {1 : 'Off', 2 : 'Sleeping', 3 : 'Starting', 4 : 'MPPT', 5 : 'Throttled', 6 : 'Shutting down', 7 : 'Fault', 8 : 'Standby'}
+DICT_CHAST = {1 : 'Off', 2 : 'Empty', 3 : 'Discharging', 4 : 'Charging', 5 : 'Full', 6 : 'Holding', 7 : 'Testing'}
+DICT_EVT = {0 : 'Ground Fault', 1 : 'Input Over Voltage', 19 : 'Reserved', 3 : 'DC Disconnect', 5 : 'Cabinet Open', 6 : 'Manual Shutdown', \
+            7 : 'Over Temperature', 12 : 'Blown Fuse', 13 : 'Under Temperature', 14 : 'Memory Loss', 15 : 'Arc Detection', 20 : 'Test Failed', \
+            21 : 'Under Voltage', 22 : 'Over Current'}
+DICT_DCST = {1 : 'Off', 2 : 'Sleeping', 3 : 'Starting', 4 : 'MPPT', 5 : 'Throttled', 6 : 'Shutting down', 7 : 'Fault', 8 : 'Standby',
              9 : 'Test', 19 : 'Reserved'}
-dict_dcevt = {0 : 'Ground Fault', 1 : 'Input Over Voltage', 19 : 'Reserved', 3 : 'DC Disconnect', 5 : 'Cabinet Open', 6 : 'Manual Shutdown', 7 : 'Over Temperature', 12 : 'Blown Fuse', 13 : 'Under Temperature', 14 : 'Memory Loss', 15 : 'Arc Detection', 20 : 'Test Failed', 21 : 'Under Voltage', 22 : 'Over Current'}
+DICT_DCEVT = {0 : 'Ground Fault', 1 : 'Input Over Voltage', 19 : 'Reserved', 3 : 'DC Disconnect', 5 : 'Cabinet Open', 6 : 'Manual Shutdown',\
+              7 : 'Over Temperature', 12 : 'Blown Fuse', 13 : 'Under Temperature', 14 : 'Memory Loss', 15 : 'Arc Detection', 20 : 'Test Failed',\
+              21 : 'Under Voltage', 22 : 'Over Current'}
 
 
 def write_line(line, log_directory, header_line, debug):
@@ -102,6 +107,7 @@ def write_line(line, log_directory, header_line, debug):
 
 
 def discover_devices(device_node, modbus_address, conn_type, baud, port, debug):
+    """This function will discover all the Sunspec devices"""
     try:
         if conn_type == 'tcp':
             port_int = int(port)
@@ -177,14 +183,14 @@ def extract_160_data(model, list_dev, dict_dev, debug):
                     print('\t%-20s %20s' % (suns_id, value))
 
             # Else, if its in the repeating block, create a header AND data item
-            elif suns_id in dict_strings_repeating:
+            elif suns_id in DICT_STRINGS_REPEATING:
                 value = ""
                 if point.value is not None:
                     value = point.value
                 # Replace numbered status/events with description
                 value = convert_value(suns_id, value)
                 # ***Append*** to the data_list **AND** the header_list
-                header_item = dict_strings_repeating[suns_id]
+                header_item = DICT_STRINGS_REPEATING[suns_id]
                 header_list.append(header_item)
                 data_list.append(str(value))
                 if debug > 0:
@@ -235,14 +241,14 @@ def extract_403_data(model, list_dev, dict_dev, debug):
                     print('\t%-20s %20s' % (suns_id, value))
 
             # Else, if its in the repeating block, create a header AND data item
-            elif suns_id in dict_combiner_repeating:
+            elif suns_id in DICT_COMBINER_REPEATING:
                 value = ""
                 if point.value is not None:
                     value = point.value
                 # Replace numbered status/events with description
                 value = convert_value(suns_id, value)
                 # ***Append*** to the data_list **AND** the header_list
-                header_item = dict_combiner_repeating[suns_id]
+                header_item = DICT_COMBINER_REPEATING[suns_id]
                 header_list.append(header_item)
                 data_list.append(str(value))
                 if debug > 0:
@@ -307,20 +313,20 @@ def extract_data(model, list_dev, dict_dev, debug):
 def convert_value(name, value):
     """This will look up and replace numbers with descriptions"""
 
-    if name == 'EVT1' and value in dict_evt1:
-        value = dict_evt1[value]
-    elif name == 'ST' and value in dict_st:
-        value = dict_st[value]
-    elif name == 'STORCTL_MOD' and value in dict_storctl_mod:
-        value = dict_storctl_mod[value]
-    elif name == 'CHAST' and value in dict_chast:
-        value = dict_chast[value]
-    elif name == 'EVT' and value in dict_evt:
-        value = dict_evt[value]
-    elif name == 'DCST' and value in dict_dcst:
-        value = dict_dcst[value]
-    elif name == 'DCEVT' and value in dict_dcevt:
-        value = dict_dcevt[value]
+    if name == 'EVT1' and value in DICT_EVT1:
+        value = DICT_EVT1[value]
+    elif name == 'ST' and value in DICT_ST:
+        value = DICT_ST[value]
+    elif name == 'STORCTL_MOD' and value in DICT_STORCTL_MOD:
+        value = DICT_STORCTL_MOD[value]
+    elif name == 'CHAST' and value in DICT_CHAST:
+        value = DICT_CHAST[value]
+    elif name == 'EVT' and value in DICT_EVT:
+        value = DICT_EVT[value]
+    elif name == 'DCST' and value in DICT_DCST:
+        value = DICT_DCST[value]
+    elif name == 'DCEVT' and value in DICT_DCEVT:
+        value = DICT_DCEVT[value]
     elif name == 'W':
         value = abs(value)
 
@@ -353,29 +359,43 @@ def log_devices(device_node, modbus_address, conn_type, baud, port, log_director
         # "id" may not exist
         try:
             # Log the data for an 101 (Single Phase) Inverter
-            if model.model_type.id == SINGLE_PHASE_INVERTER or model.model_type.id == THREE_PHASE_INVERTER:
-                header, line = extract_data(model, list_inverter, dict_inverter, debug)
+            if model.model_type.id == SINGLE_PHASE_INVERTER_101:
+                header, line = extract_data(model, LIST_INVERTER, DICT_INVERTER, debug)
                 # Added "sunspec_101", device_node and modbus_address to the directory suffix
                 full_log_directory = os.path.join(full_log_directory, "sunspec_101")
                 write = True
 
+            # Log the data for an 103 (Three Phase) Inverter
+            elif model.model_type.id == THREE_PHASE_INVERTER_103:
+                header, line = extract_data(model, LIST_INVERTER, DICT_INVERTER, debug)
+                # Added "sunspec_103", device_node and modbus_address to the directory suffix
+                full_log_directory = os.path.join(full_log_directory, "sunspec_103")
+                write = True
+
+            # Log the data for an 113 (Three Phase) Inverter
+            elif model.model_type.id == THREE_PHASE_INVERTER_113:
+                header, line = extract_data(model, LIST_INVERTER, DICT_INVERTER, debug)
+                # Added "sunspec_113", device_node and modbus_address to the directory suffix
+                full_log_directory = os.path.join(full_log_directory, "sunspec_113")
+                write = True
+
             # Log the data for a device 124 (Storage)
-            if model.model_type.id == STORAGE:
-                header, line = extract_data(model, list_storage, dict_storage, debug)
+            elif model.model_type.id == STORAGE:
+                header, line = extract_data(model, LIST_STORAGE, DICT_STORAGE, debug)
                 # Added "sunspec_124", device_node and modbus_address to the directory suffix
                 full_log_directory = os.path.join(full_log_directory, "sunspec_124")
                 write = True
 
             # Log the data for a device 160 (Strings)
-            if model.model_type.id == INVERTER_STRINGS:
-                header, line = extract_160_data(model, list_strings, dict_strings, debug)
+            elif model.model_type.id == INVERTER_STRINGS:
+                header, line = extract_160_data(model, LIST_STRINGS, DICT_STRINGS, debug)
                 # Added "sunspec_160", device_node and modbus_address to the directory suffix
                 full_log_directory = os.path.join(full_log_directory, "sunspec_160")
                 write = True
 
             # Log the data for a device 403 (String Combiner)
-            if model.model_type.id == STRING_COMBINER:
-                header, line = extract_403_data(model, list_combiner, dict_combiner, debug)
+            elif model.model_type.id == STRING_COMBINER:
+                header, line = extract_403_data(model, LIST_COMBINER, DICT_COMBINER, debug)
                 # Added "sunspec_403", device_node and modbus_address to the directory suffix
                 full_log_directory = os.path.join(full_log_directory, "sunspec_403")
                 write = True

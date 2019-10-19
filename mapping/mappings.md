@@ -1,5 +1,5 @@
 # Mapping
-- This is an example of the mapping from reading a Sunspec inverter (type 103 or 101) using this plugin
+- This is an example of the mapping from reading a Sunspec inverter (type 113, 103 or 101) using this plugin
 
 CSV Name                    Ardexa Name             Type        Units
 -----------------------------------------------------------------------

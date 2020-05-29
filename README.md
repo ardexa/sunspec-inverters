@@ -47,8 +47,10 @@ In this project, please take a look at the 'docs' directory. This is a document 
 - `String Combiner` type collected are Sunspec Model `403`. 
 
 ## Inverter Types:
-- Delta Inverters use 19200 baud by default
-- Solaredge Inverters use 115200 baud by default
+- Delta Inverters use 19200 baud by default.
+- Solaredge Inverters use 115200 baud by default.
+- For SMA Inverters, the default Sunspec Address is `126`. 
+  See: https://www.sma-sunny.com/en/how-to-test-the-connection-to-your-sma-inverter/
 
 ## Collecting to the Ardexa cloud
 Collecting to the Ardexa cloud is free for up to 3 Raspberry Pis (or equivalent). Ardexa provides free agents for ARM, Intel x86 and MIPS based processors. To collect the data to the Ardexa cloud do the following:

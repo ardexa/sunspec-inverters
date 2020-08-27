@@ -120,7 +120,7 @@ def discover_devices(device_node, modbus_address, conn_type, baud, port, debug):
 
     except:
         if debug > 0:
-            print("Cannot find the address: ", modbus_address)
+            print("Cannot find a Sunpec device. Modbus address: ", modbus_address, " device node:", device_node, " conn_type:", conn_type)
         return False
 
     print("Found a device at address: ", modbus_address)

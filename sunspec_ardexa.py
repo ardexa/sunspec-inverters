@@ -133,7 +133,11 @@ def discover_devices(device_node, modbus_address, conn_type, baud, port, debug):
             pass
 
         for block in model.blocks:
+            print("BLOCK.type:", block.type)
+            print("BLOCK.index:", block.index)
+            print("model.model_type.id:", model.model_type.id)
             for point in block.points_list:
+                print("\tPOINT:", point)
                 if point.value is not None:
                     label = ""
                     suns_id = (point.point_type.id).strip().upper()
@@ -238,7 +242,7 @@ def extract_403_data(model, list_dev, dict_dev, debug):
                 index = list_dev.index(suns_id)
                 data_list[index] = str(value)
                 if debug > 0:
-                    print('\t%-20s %20s' % (suns_id, value))
+                    print('\tNON COMBINER REPEATING: %-20s %20s' % (suns_id, value))
 
             # Else, if its in the repeating block, create a header AND data item
             elif suns_id in DICT_COMBINER_REPEATING:
@@ -252,7 +256,7 @@ def extract_403_data(model, list_dev, dict_dev, debug):
                 header_list.append(header_item)
                 data_list.append(str(value))
                 if debug > 0:
-                    print('\t%-20s %20s' % (suns_id, value))
+                    print('\tCOMBINER REPEATING: %-20s %20s' % (suns_id, value))
 
     # Add a datetime and Log the line
     dt = ap.get_datetime_str()
@@ -395,6 +399,8 @@ def log_devices(device_node, modbus_address, conn_type, baud, port, log_director
 
             # Log the data for a device 403 (String Combiner)
             elif model.model_type.id == STRING_COMBINER:
+                if debug > 0:
+                    print("Calling the 403 model")
                 header, line = extract_403_data(model, LIST_COMBINER, DICT_COMBINER, debug)
                 # Added "sunspec_403", device_node and modbus_address to the directory suffix
                 full_log_directory = os.path.join(full_log_directory, "sunspec_403")
@@ -442,13 +448,6 @@ def cli(config, verbose):
 def discover(config, device, modbus_addresses, baud, port):
     """Connect to the target IP address and run a scan of all Sunspec devices"""
 
-    # Check that no other scripts are running
-    # The pidfile is based on the device, since there are multiple scripts running
-    pidfile = PIDFILE + device.replace('/', '-') + '.pid'
-    if ap.check_pidfile(pidfile, config.verbosity):
-        print("This script is already running")
-        sys.exit(4)
-
     conn_type = 'tcp'
     try:
         socket.inet_aton(device)
@@ -461,6 +460,7 @@ def discover(config, device, modbus_addresses, baud, port):
     for address in ap.parse_address_list(modbus_addresses):
         count = 0
         while count < ATTEMPTS:
+            print("debug level disc:", config.verbosity)#####################################
             retval = discover_devices(device, address, conn_type, baud, port, config.verbosity)
             if retval:
                 break
@@ -471,9 +471,6 @@ def discover(config, device, modbus_addresses, baud, port):
     if config.verbosity > 0:
         print("This request took: ", elapsed_time, " seconds.")
 
-    # Remove the PID file
-    if os.path.isfile(pidfile):
-        os.unlink(pidfile)
 
 
 @cli.command()
@@ -489,13 +486,6 @@ def log(config, device, modbus_addresses, output_directory, baud, port):
     # If the logging directory doesn't exist, create it
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
-
-    # Check that no other scripts are running
-    # The pidfile is based on the device, since there are multiple scripts running
-    pidfile = PIDFILE + device.replace('/', '-') + '.pid'
-    if ap.check_pidfile(pidfile, config.verbosity):
-        print("This script is already running")
-        sys.exit(4)
 
     conn_type = 'tcp'
     try:
@@ -519,6 +509,4 @@ def log(config, device, modbus_addresses, output_directory, baud, port):
     if config.verbosity > 0:
         print("This request took: ", elapsed_time, " seconds.")
 
-    # Remove the PID file
-    if os.path.isfile(pidfile):
-        os.unlink(pidfile)
+
